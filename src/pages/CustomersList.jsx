@@ -1,6 +1,5 @@
 import {
   Button,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -10,10 +9,12 @@ import {
   Typography,
 } from "@mui/material";
 import { Box, Stack } from "@mui/system";
-import axios from "axios";
 import React from "react";
-import { useState } from "react";
 import { useEffect } from "react";
+import { useState } from "react";
+import { getAllCustomersAPI } from "../xhr/customersAPI";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { useNavigate } from "react-router-dom";
 
 const dummyData = [
   {
@@ -45,25 +46,13 @@ const dummyData = [
 const CustomersList = () => {
   const [customers, setCustomers] = useState();
 
-  const fetchData = async () => {
-    try {
-      const { data } = await axios.get("https://localhost:7024/Customers", {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS",
-        },
-      });
-
-      console.log(data);
-
-      setCustomers(data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
+    (async () => {
+      const data = await getAllCustomersAPI();
+      setCustomers(data);
+    })();
   }, []);
 
   return (
@@ -71,44 +60,62 @@ const CustomersList = () => {
       <Stack direction={"row"} justifyContent="space-between" mb={2}>
         <Box></Box>
         <Typography variant="h4">List Of Customers</Typography>
-        <Button variant="outlined" color="secondary">
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={() => navigate("/addCustomer")}
+        >
           Add Customer
         </Button>
       </Stack>
-      <TableContainer component={Paper}>
+      <TableContainer>
         <Table sx={{ minWidth: 700 }} aria-label="customized table">
           <TableHead>
             <TableRow>
               {/* <TableCell>Id</TableCell> */}
-              <TableCell align="right">FirstName</TableCell>
-              <TableCell align="right">LastName</TableCell>
-              <TableCell align="right">UserName</TableCell>
-              <TableCell align="right">Email Address</TableCell>
-              <TableCell align="right">Date Of Birth</TableCell>
-              <TableCell align="right">Age</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                FirstName
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                LastName
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                UserName
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                Email Address
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                Age
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bolder" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {dummyData.map((row) => (
+            {customers?.map((row) => (
               <TableRow key={row.customerID}>
                 {/* <TableCell>{row.customerID}</TableCell> */}
                 <TableCell component="th" scope="row">
                   {row.firstName}
                 </TableCell>
-                <TableCell align="right">{row.lastName}</TableCell>
-                <TableCell align="right">{row.userName}</TableCell>
-                <TableCell align="right">{row.emailAddress}</TableCell>
-                <TableCell align="right">{row.dateOfBirth}</TableCell>
-                <TableCell align="right">{row.age}</TableCell>
-                <TableCell align="right">
+                <TableCell align="center">{row.lastName}</TableCell>
+                <TableCell align="center">{row.userName}</TableCell>
+                <TableCell align="center">{row.emailAddress}</TableCell>
+                <TableCell align="center">{row.age}</TableCell>
+                <TableCell align="center">
                   <Stack direction={"row"} spacing={2}>
-                    <Button variant="contained" color="secondary">
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() =>
+                        navigate(`/editCustomer/${row.customerID}`)
+                      }
+                    >
                       Edit
                     </Button>
-                    <Button variant="outlined" color="error">
-                      Delete
-                    </Button>
+                    <ConfirmDeleteModal id={row.customerID} />
                   </Stack>
                 </TableCell>
               </TableRow>
